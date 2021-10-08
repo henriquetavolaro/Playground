@@ -3,7 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/ADM/.gradle/caches/transforms-3/c76280d549768815c1e3767b02342182/transformed/jetified-facebook-share-4.42.0/res/drawable/com_facebook_button_send_background.xml" value="0.22239583333333332" />
         <entry key="..\:/Users/ADM/AndroidStudioProjects/Playgound/app/src/main/res/layout/activity_main.xml" value="0.2957427536231884" />
+        <entry key="..\:/Users/ADM/AndroidStudioProjects/Playgound/app/src/main/res/layout/fragment_auth.xml" value="0.6" />
+        <entry key="..\:/Users/ADM/AndroidStudioProjects/Playgound/app/src/main/res/layout/fragment_logged.xml" value="0.20625" />
+        <entry key="..\:/Users/ADM/AndroidStudioProjects/Playgound/app/src/main/res/layout/fragment_verification.xml" value="0.16666666666666666" />
         <entry key="..\:/Users/ADM/AndroidStudioProjects/Playgound/app/src/main/res/layout/new_layout.xml" value="0.1" />
         <entry key="..\:/Users/ADM/AppData/Local/Android/Sdk/platforms/android-31/data/res/layout/activity_list_item.xml" value="0.10099637681159421" />
       </map>

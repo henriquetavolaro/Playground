@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Playgound</string>
     <string name="web_client_id">639703256266-l9955h90kkvgkd5fhvih5nidr75unvmn.apps.googleusercontent.com</string>
+    <string name="facebook_app_id">645241579971106</string> <string name="fb_login_protocol_scheme">fb645241579971106</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
