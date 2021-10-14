@@ -10,12 +10,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.example.playgound.Client
-import com.example.playgound.MyViewModel
-import com.example.playgound.R
-import com.example.playgound.RC_SIGN_IN
 import com.facebook.*
 import com.facebook.FacebookSdk.getApplicationContext
 import com.facebook.login.LoginResult
@@ -30,6 +29,14 @@ import com.google.firebase.auth.*
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import android.app.Activity
+
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import com.example.playgound.*
+import com.example.playgound.R
+import com.facebook.login.LoginManager
+
 
 @AndroidEntryPoint
 class AuthFragment : Fragment() {
@@ -58,15 +65,13 @@ class AuthFragment : Fragment() {
         super.onStart()
         // CHECK CURRENT USER
         val currentUser = auth.currentUser
-        if(currentUser != null) {
+        if (currentUser != null) {
             findNavController().navigate(R.id.action_authFragment_to_loggedFragment)
         }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-
 
 
         val button = view.findViewById<Button>(R.id.button)
@@ -84,32 +89,34 @@ class AuthFragment : Fragment() {
 
         val googleSignInButton = view.findViewById<SignInButton>(R.id.button_google)
 
+        val authentication = Authentication()
+
         //GOOGLE SIGN IN
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-
-        val googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
-
 
         googleSignInButton.setOnClickListener {
-            val signInIntent = googleSignInClient.signInIntent
-            startActivityForResult(signInIntent, RC_SIGN_IN)
+            authentication
+                .googleSignIn(
+                    getString(R.string.default_web_client_id),
+                    requireActivity(),
+                    resultContract
+                )
         }
-
-
         //PHONE SIGN IN
 
         buttonSend.setOnClickListener {
-            phoneSignIn()
+            authentication.phoneSignIn(
+                requireView(),
+                requireContext(),
+                auth,
+                requireActivity(),
+                callbacks
+            )
         }
 
         callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                  Log.d("TAGTESTPHONE", "onVerificationCompleted:$credential")
-//                signInWithPhoneAuthCredential(credential)
+                Log.d("TAGTESTPHONE", "onVerificationCompleted:$credential")
                 findNavController().navigate(R.id.action_authFragment_to_loggedFragment)
             }
 
@@ -136,24 +143,34 @@ class AuthFragment : Fragment() {
                 storedVerificationId = verificationId
                 resendToken = token
 
-                val action = AuthFragmentDirections.actionAuthFragmentToVerificationFragment(storedVerificationId)
+                val action = AuthFragmentDirections.actionAuthFragmentToVerificationFragment(
+                    storedVerificationId
+                )
                 findNavController().navigate(action)
             }
         }
 
 
-
         // FACEBOOK LOGIN
         val buttonFacebookLogin = view.findViewById<LoginButton>(R.id.button_facebook)
 
-//        buttonFacebookLogin.setReadPermissions("email", "public_profile")
+        //  buttonFacebookLogin.setReadPermissions("email", "public_profile")
         facebookCallback = CallbackManager.Factory.create()
+
+        buttonFacebookLogin.setOnClickListener { LoginManager.getInstance() }
 
         buttonFacebookLogin.registerCallback(facebookCallback, object :
             FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
                 Log.d("TAGTESTFACEEBOOK", "facebook:onSuccess:$loginResult")
-                handleFacebookAccessToken(loginResult.accessToken)
+                authentication
+                    .handleFacebookAccessToken(
+                        loginResult.accessToken,
+                        auth,
+                        requireActivity(),
+                        findNavController(),
+                        context!!
+                    )
             }
 
             override fun onCancel() {
@@ -166,72 +183,6 @@ class AuthFragment : Fragment() {
         })
     }
 
-    //FACEBOOK SIGN IN
-    private fun handleFacebookAccessToken(token: AccessToken) {
-        Log.d("TAGTESTFACEEBOOK", "handleFacebookAccessToken:$token")
-
-        val credential = FacebookAuthProvider.getCredential(token.token)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(requireActivity()) { task ->
-                if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d("TAGTESTFACEBOOK", "signInWithCredential:success")
-                    val user = auth.currentUser
-                    findNavController().navigate(R.id.action_authFragment_to_loggedFragment)
-                } else {
-                    // If sign in fails, display a message to the user.
-                    Log.d("TAGTESTFACEBOOK", "signInWithCredential:failure", task.exception)
-                    Toast.makeText(context, "Authentication failed.",
-                        Toast.LENGTH_SHORT).show()
-//                    updateUI(null)
-                }
-            }
-    }
-
-    // PHONE SIGN IN
-    private fun phoneSignIn(){
-        val phoneEditText = requireView().findViewById<EditText>(R.id.et_mobile)
-        var number = phoneEditText.text.toString().trim()
-
-        if(number.isNotEmpty()){
-            number = "+55$number"
-            sendPhoneVerification(number)
-        } else {
-            Toast.makeText(context, "phone empty", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun sendPhoneVerification(number: String){
-        val options = PhoneAuthOptions.newBuilder(auth)
-            .setPhoneNumber(number)       // Phone number to verify
-            .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit
-            .setActivity(requireActivity())                 // Activity (for callback binding)
-            .setCallbacks(callbacks)          // OnVerificationStateChangedCallbacks
-            .build()
-        PhoneAuthProvider.verifyPhoneNumber(options)
-    }
-
-    // GOOGLE SIGN IN
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//
-//        if (requestCode == RC_SIGN_IN) {
-//            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-//            try {
-//                val account = task.getResult(ApiException::class.java)!!
-//                Log.d("TAGTEST", "signInWithCredential:success")
-//                val user = account.displayName
-//                Log.d("TAGTEST", account.idToken!!.toString())
-//                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-//                auth.signInWithCredential(credential)
-//                findNavController().navigate(R.id.action_authFragment_to_loggedFragment)
-//            } catch (e: ApiException){
-//                Log.d("TAGTEST", "signInWithCredential:failure", task.exception)
-//            }
-//
-//        }
-//    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -239,5 +190,22 @@ class AuthFragment : Fragment() {
         facebookCallback.onActivityResult(requestCode, resultCode, data)
     }
 
+    // GOOGLE SIGN IN
+    val resultContract = registerForActivityResult(StartActivityForResult()) { result ->
 
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)!!
+                Log.d("TAGTEST", "signInWithCredential:success")
+                val user = account.displayName
+                Log.d("TAGTEST", account.idToken!!.toString())
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                auth.signInWithCredential(credential)
+                findNavController().navigate(R.id.action_authFragment_to_loggedFragment)
+            } catch (e: ApiException) {
+                Log.d("TAGTEST", "signInWithCredential:failure", task.exception)
+            }
+        }
+    }
 }

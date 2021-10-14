@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import androidx.navigation.fragment.findNavController
 import com.example.playgound.R
+import com.facebook.login.widget.LoginButton
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -32,6 +33,13 @@ class LoggedFragment : Fragment() {
         val logoutButton = view.findViewById<Button>(R.id.button_logout)
 
         logoutButton.setOnClickListener {
+            auth.signOut()
+            findNavController().popBackStack(R.id.authFragment, false)
+        }
+
+        val fbButton = view.findViewById<LoginButton>(R.id.button_fb)
+
+        fbButton.setOnClickListener {
             auth.signOut()
             findNavController().popBackStack(R.id.authFragment, false)
         }

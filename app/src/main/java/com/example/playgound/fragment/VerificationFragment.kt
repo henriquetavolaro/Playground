@@ -1,5 +1,6 @@
 package com.example.playgound.fragment
 
+import `in`.aabhasjindal.otptextview.OtpTextView
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -19,6 +20,12 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import com.example.playgound.MainActivity
+
+import `in`.aabhasjindal.otptextview.OTPListener
+import android.os.CountDownTimer
+import android.widget.TextView
+
 
 @AndroidEntryPoint
 class VerificationFragment : Fragment() {
@@ -39,21 +46,40 @@ class VerificationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val tvTimer = view.findViewById<TextView>(R.id.tv_timer)
 
-        val buttonVerify = view.findViewById<Button>(R.id.button_verify)
-        val inputCode = view.findViewById<EditText>(R.id.et_code)
+        object : CountDownTimer(60000, 1000) {
 
-        buttonVerify.setOnClickListener {
-            val code = inputCode.text.toString().trim()
-
-            if(code.isNotEmpty()){
-                val credential  =
-                    PhoneAuthCredential.zzc(storedVerificationId.verificationId, code)
-                signInWithPhoneAuthCredential(credential)
-            } else {
-                Toast.makeText(context, "Enter code", Toast.LENGTH_SHORT).show()
+            override fun onTick(millisUntilFinished: Long) {
+                tvTimer.text = "seconds remaining: " + millisUntilFinished / 1000
             }
+
+            override fun onFinish() {
+                tvTimer.text = "Timeout! Reenviar?"
+            }
+        }.start()
+
+        val inputCode = view.findViewById<OtpTextView>(R.id.code)
+
+        inputCode?.requestFocusOTP()
+        inputCode?.otpListener = object : OTPListener {
+            override fun onInteractionListener() {
+
+            }
+
+            override fun onOTPComplete(code: String) {
+                if (code.isNotEmpty()) {
+                    val credential =
+                        PhoneAuthCredential.zzc(storedVerificationId.verificationId, code)
+                    signInWithPhoneAuthCredential(credential)
+                } else {
+                    Toast.makeText(context, "Enter code", Toast.LENGTH_SHORT).show()
+                }
+
+            }
+
         }
+
 
 
     }

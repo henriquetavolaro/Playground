@@ -32,6 +32,7 @@
         android:id="@+id/button_facebook"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="facebook"
         app:layout_constraintBottom_toTopOf="@+id/button_google"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

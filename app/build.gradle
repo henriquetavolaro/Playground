@@ -44,6 +44,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation "androidx.fragment:fragment-ktx:$fragment_version"
     //hilt
     implementation("com.google.dagger:hilt-android:$hilt_version")
     implementation 'com.google.firebase:firebase-firestore-ktx:23.0.4'
@@ -64,6 +65,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:19.2.0'
     //facebook auth
     implementation 'com.facebook.android:facebook-android-sdk:latest.release'
+    // pin mask
+    implementation 'com.github.aabhasr1:OtpView:v1.1.2-ktx'
 
     implementation platform('com.google.firebase:firebase-bom:28.4.2')
     implementation 'com.google.firebase:firebase-analytics-ktx'
