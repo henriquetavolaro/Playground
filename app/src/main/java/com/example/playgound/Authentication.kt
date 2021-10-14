@@ -26,7 +26,11 @@ import java.util.concurrent.TimeUnit
 
 class Authentication {
 
-    fun googleSignIn(token: String, activity: Activity, resultContract: ActivityResultLauncher<Intent>){
+    fun googleSignIn(
+        token: String,
+        activity: Activity,
+        resultContract: ActivityResultLauncher<Intent>
+    ) {
 
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(token)
@@ -44,24 +48,20 @@ class Authentication {
         token: AccessToken,
         auth: FirebaseAuth,
         activity: Activity,
-    navController: NavController,
-    context: Context) {
-        Log.d("TAGTESTFACEEBOOK", "handleFacebookAccessToken:$token")
-
+        navController: NavController,
+        context: Context
+    ) {
         val credential = FacebookAuthProvider.getCredential(token.token)
         auth.signInWithCredential(credential)
             .addOnCompleteListener(activity) { task ->
                 if (task.isSuccessful) {
-                    // Sign in success, update UI with the signed-in user's information
-                    Log.d("TAGTESTFACEBOOK", "signInWithCredential:success")
-                    val user = auth.currentUser
                     navController.navigate(R.id.action_authFragment_to_loggedFragment)
                 } else {
-                    // If sign in fails, display a message to the user.
-                    Log.d("TAGTESTFACEBOOK", "signInWithCredential:failure", task.exception)
-                    Toast.makeText(context, "Authentication failed.",
-                        Toast.LENGTH_SHORT).show()
-//                    updateUI(null)
+                    Toast.makeText(
+                        context, "Authentication failed.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
                 }
             }
     }
@@ -72,11 +72,11 @@ class Authentication {
         auth: FirebaseAuth,
         activity: Activity,
         callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
-    ){
+    ) {
         val phoneEditText = view.findViewById<EditText>(R.id.et_mobile)
         var number = phoneEditText.text.toString().trim()
 
-        if(number.isNotEmpty()){
+        if (number.isNotEmpty()) {
             number = "+55$number"
             sendPhoneVerification(number, auth, activity, callbacks)
         } else {
@@ -90,7 +90,7 @@ class Authentication {
         activity: Activity,
         callbacks: PhoneAuthProvider.OnVerificationStateChangedCallbacks
 
-        ){
+    ) {
         val options = PhoneAuthOptions.newBuilder(auth)
             .setPhoneNumber(number)       // Phone number to verify
             .setTimeout(60L, TimeUnit.SECONDS) // Timeout and unit

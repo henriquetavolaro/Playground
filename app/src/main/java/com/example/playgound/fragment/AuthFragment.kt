@@ -73,28 +73,15 @@ class AuthFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
-        val button = view.findViewById<Button>(R.id.button)
         val buttonSend = view.findViewById<Button>(R.id.button_send)
-
-        button.setOnClickListener {
-            val client = Client(
-                id = "id2",
-                name = "client1",
-                photoUrl = "photo1",
-                email = "email1"
-            )
-            viewModel.addClient(client)
-        }
 
         val googleSignInButton = view.findViewById<SignInButton>(R.id.button_google)
 
-        val authentication = Authentication()
 
         //GOOGLE SIGN IN
 
         googleSignInButton.setOnClickListener {
-            authentication
+            viewModel
                 .googleSignIn(
                     getString(R.string.default_web_client_id),
                     requireActivity(),
@@ -104,7 +91,7 @@ class AuthFragment : Fragment() {
         //PHONE SIGN IN
 
         buttonSend.setOnClickListener {
-            authentication.phoneSignIn(
+            viewModel.phoneSignIn(
                 requireView(),
                 requireContext(),
                 auth,
@@ -154,7 +141,6 @@ class AuthFragment : Fragment() {
         // FACEBOOK LOGIN
         val buttonFacebookLogin = view.findViewById<LoginButton>(R.id.button_facebook)
 
-        //  buttonFacebookLogin.setReadPermissions("email", "public_profile")
         facebookCallback = CallbackManager.Factory.create()
 
         buttonFacebookLogin.setOnClickListener { LoginManager.getInstance() }
@@ -162,8 +148,7 @@ class AuthFragment : Fragment() {
         buttonFacebookLogin.registerCallback(facebookCallback, object :
             FacebookCallback<LoginResult> {
             override fun onSuccess(loginResult: LoginResult) {
-                Log.d("TAGTESTFACEEBOOK", "facebook:onSuccess:$loginResult")
-                authentication
+                viewModel
                     .handleFacebookAccessToken(
                         loginResult.accessToken,
                         auth,
@@ -174,15 +159,16 @@ class AuthFragment : Fragment() {
             }
 
             override fun onCancel() {
-                Log.d("TAGTESTFACEEBOOK", "facebook:onCancel")
+                Log.d("TAG", "facebook:onCancel")
             }
 
             override fun onError(error: FacebookException) {
-                Log.d("TAGTESTFACEEBOOK", "facebook:onError", error)
+                Log.d("TAG", "facebook:onError", error)
             }
         })
     }
 
+    //FACEBOOK
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -191,20 +177,20 @@ class AuthFragment : Fragment() {
     }
 
     // GOOGLE SIGN IN
-    val resultContract = registerForActivityResult(StartActivityForResult()) { result ->
+    private val resultContract = registerForActivityResult(StartActivityForResult()) { result ->
 
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             try {
                 val account = task.getResult(ApiException::class.java)!!
-                Log.d("TAGTEST", "signInWithCredential:success")
+                Log.d("TAG", "signInWithCredential:success")
                 val user = account.displayName
-                Log.d("TAGTEST", account.idToken!!.toString())
+                Log.d("TAG", account.idToken!!.toString())
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
                 auth.signInWithCredential(credential)
                 findNavController().navigate(R.id.action_authFragment_to_loggedFragment)
             } catch (e: ApiException) {
-                Log.d("TAGTEST", "signInWithCredential:failure", task.exception)
+                Log.d("TAG", "signInWithCredential:failure", task.exception)
             }
         }
     }
